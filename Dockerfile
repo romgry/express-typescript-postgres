@@ -1,5 +1,5 @@
 # 1. Use an official Node.js runtime as a parent image
-FROM node:12-alpine AS builder
+FROM node:20-alpine AS builder
 
 # 2. Set the working directory in the container
 WORKDIR /usr/src/app
@@ -23,7 +23,7 @@ RUN npm run build
 # RUN npm prune --production
 
 # --- Release Stage ---
-FROM node:12-alpine
+FROM node:20-alpine
 
 WORKDIR /usr/src/app
 

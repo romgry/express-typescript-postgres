@@ -23,10 +23,10 @@ and many more...
 
 Binaries      | Version
 ------------- | -------------
-NodeJS        | >= LTS
+NodeJS        | >= 20.0.0
 NPM           | >= 6.14.6
 PostgreSQL    | >= 12.1
-ts-node-dev   | >= 1.0.0
+ts-node-dev   | >= 2.0.0
 
 # What is the Structure?
 
