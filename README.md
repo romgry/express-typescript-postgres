@@ -108,37 +108,124 @@ ts-node-dev   | >= 2.0.0
 └── README.md
 ```
 
-# How to SetUp & Install?
+## Quick Start: Local Development Setup (Without Docker)
+
+This guide provides step-by-step instructions to get the application running on your local machine for development if you are not using Docker.
+
+### 1. Prerequisites
+
+Ensure you have the following installed:
+*   Git
+*   Node.js (version `>= 20.0.0` - see the main "What are the Pre-requisites?" section at the beginning of this README for any updates to other tools like npm, PostgreSQL itself, etc.)
+*   npm (usually comes with Node.js)
+*   PostgreSQL server (e.g., version 12.1 or higher) installed and running.
+
+### 2. Clone the Repository
 
 ```sh
-# Clone the repository
-git clone 
-
-# Create the config file from the sample-config file
-cp config/index.sample.ts config/index.ts;
-
-# Add your database details
- user: 'db_username',
- password: 'db_password',
- database: 'db_dbname',
- host: 'db_host',
-  
-# Goto the source code
-cd src;
-
-# Install NPM dependencies
-npm install;
-
-# Map new-migration command
-sudo npm link;
+git clone <repository_url> # Replace <repository_url> with the actual URL
+cd <repository_name>     # Replace <repository_name> with the cloned directory name
 ```
 
-# How to SetUp Database?
+### 3. Configure the Application
 
-1. You should have **"postgres"** user available in your postgres eco-system.
-2. **Create a database** with a name of your choice & assign **"postgres"** user to the database.
-3. Now, you should **run the initial seed file** into your DB's Query Tool or we run it for you when you run this application for the first time.
-4. Define your migrations inside /database/migrations with format **yyyymmdd-001_(schemas/data/functions)_description.sql**
+The application's configuration is managed in `config/index.ts`.
+
+a.  **Create the configuration file:**
+    Copy the sample configuration file:
+    ```sh
+    cp config/index.sample.ts config/index.ts
+    ```
+
+b.  **Edit database connection details:**
+    Open `config/index.ts` in a text editor. Locate the `dbObj` section and update it with your local PostgreSQL server details:
+    ```typescript
+    export const dbObj: dbClient = {
+        user: 'your_postgres_user',     // Replace with your PostgreSQL username
+        password: 'your_postgres_password', // Replace with your user's password
+        database: 'myapp_db',           // Replace with your desired database name
+        host: 'localhost',              // Or your PostgreSQL host if not localhost
+        port: 5432,                     // Or your PostgreSQL port if not 5432
+        ssl: false,
+        max: 20,
+        idleTimeoutMillis: 10000,
+    };
+    ```
+    Other settings in `config/index.ts` can usually be left as default for an initial setup.
+
+### 4. Install Dependencies
+
+a.  Navigate to the source directory:
+    ```sh
+    cd src
+    ```
+
+b.  Install project dependencies:
+    ```sh
+    npm install
+    ```
+
+c.  **(Optional) Link the migration CLI tool:**
+    To use the `new-migration` command-line tool for creating new migration files easily, you can link it:
+    ```sh
+    sudo npm link 
+    ```
+    This allows you to run `new-migration` from anywhere in your terminal.
+
+### 5. Set Up PostgreSQL Database and User
+
+Before running the application, you need to create a PostgreSQL user (role) and a database that the application will use.
+
+a.  Connect to your PostgreSQL server using `psql` or a database management tool (like pgAdmin) as a superuser (e.g., the default `postgres` user).
+
+b.  Execute the following SQL commands, replacing `myappuser`, `mypassword`, and `myapp_db` with the values you chose in `config/index.ts`:
+    ```sql
+    -- Example using psql:
+    -- sudo -u postgres psql
+
+    CREATE USER myappuser WITH PASSWORD 'mypassword'; 
+    CREATE DATABASE myapp_db OWNER myappuser;
+    ```
+    Make sure the user, password, and database name match exactly what you configured in `config/index.ts`.
+
+### 6. Database Schema Initialization (Seed & Migrations)
+
+The application is designed to automatically initialize the database schema and run migrations when it starts if it detects an empty database or new migration files. This process includes:
+*   Running the initial setup scripts from `database/seeders/init.sql`.
+*   Applying any subsequent migration files found in the `database/migrations/` directory in chronological order.
+
+Simply ensure your database is created and `config/index.ts` points to it. When you first run `npm run dev` (see next step), the application will attempt to set up the schema. Monitor the application logs for messages about database setup.
+
+**Alternative (Manual Seed):**
+If you prefer to run the initial seed script (`init.sql`) manually before starting the application for the first time, you can use a command like this (ensure you are in the `src` directory or adjust the path to `init.sql`):
+```sh
+psql -U your_postgres_user -d your_database_name -f ../database/seeders/init.sql
+```
+If you run `init.sql` manually, the application should still handle any subsequent migrations from the `database/migrations/` folder automatically on startup.
+
+### 7. Run the Application (Development Mode)
+
+a.  Make sure you are in the `src` directory:
+    ```sh
+    # If you are in the project root:
+    cd src
+    # If you are already in src/ from npm install, you can skip this.
+    ```
+
+b.  Start the application:
+    ```sh
+    npm run dev
+    ```
+    This command uses `ts-node-dev` to run the application, which will automatically restart it when you make changes to the source code.
+
+### 8. Accessing the Application
+
+Once the application starts successfully, you should see log messages indicating it's connected to the database and listening on a port (typically 9000).
+
+*   **API:** `http://localhost:9000` (or the port configured in `config/index.ts`)
+*   **API Documentation (Swagger):** `http://localhost:9000/swagger`
+
+You should now have a fully functional local development environment.
 
 # Maintaining Database
 
