@@ -153,6 +153,38 @@ b.  **Edit database connection details:**
     ```
     Other settings in `config/index.ts` can usually be left as default for an initial setup.
 
+#### Environment Variables and NODE_ENV
+
+    The application's configuration (as defined in `config/index.ts`) is designed to be overridden by environment variables. This allows you to customize settings without directly modifying `config/index.ts` after its initial setup. For example, database credentials (`DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_NAME`, `DB_PORT`), server port (`PORT`), API keys, etc., can all be set as environment variables. The application will use the environment variable's value if present; otherwise, it will use the default hardcoded in `config/index.ts`.
+
+    **`NODE_ENV`:**
+    *   The `NODE_ENV` environment variable is automatically set for you when using the standard npm scripts:
+        *   `npm run dev`: Sets `NODE_ENV=development`
+        *   `npm run prod`: Sets `NODE_ENV=production`
+    *   Currently, `config/index.ts` does not have large blocks of configuration that switch *solely* based on `NODE_ENV` being 'development' or 'production'. Instead, specific environment variables control specific settings. However, `NODE_ENV` is a common convention and is available for use if more environment-specific logic is added to the application.
+
+    **Setting Environment Variables Locally (Non-Docker):**
+    If you are not using the `npm run dev` or `npm run prod` scripts, or if you need to override specific configuration variables (e.g., `DB_PASSWORD` for a local test instance without changing `config/index.ts`), you can set them in your shell before running the application. For example:
+
+    ```sh
+    # Example for Linux/macOS
+    export DB_PASSWORD="your_actual_db_password"
+    export PORT="8080"
+    # Then run your command, e.g., node dist/index.js (after build)
+
+    # Example for Windows (Command Prompt)
+    set DB_PASSWORD="your_actual_db_password"
+    set PORT="8080"
+    # Then run your command
+
+    # Example for Windows (PowerShell)
+    $env:DB_PASSWORD="your_actual_db_password"
+    $env:PORT="8080"
+    # Then run your command
+    ```
+
+    **For Docker setups:** Environment variables, including `NODE_ENV`, are managed within the `docker-compose.yml` file for each service.
+
 ### 4. Install Dependencies
 
 a.  Navigate to the source directory:
