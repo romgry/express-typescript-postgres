@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "9000:9000"
+    environment:
+      NODE_ENV: development # Or 'production' as needed, 'development' for local dev with hot-reloading
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: password123 # Changed from 12345 for better security practice, even if local
+      DB_NAME: recipe_db
+      DB_PORT: 5432
+      # Add any other environment variables your app needs, e.g., from config/index.sample.ts
+      API_UUID: '0eb14adc-a16e-400c-8f55-7d6c016bb36d' # from config/index.sample.ts
+      TOKEN_EXPIRATION_DAYS: 1
+      TOKEN_EXPIRATION_HOURS: 8
+      # etc. for other config values if they are read from ENV
+    volumes:
+      # Mount source code for development to enable hot-reloading if dev script supports it
+      # The Dockerfile already copies src, this is for local overrides
+      - ./src:/usr/src/app/src 
+      # If tsconfig.json is outside src and influences runtime/build behavior in dev
+      # - ./tsconfig.json:/usr/src/app/tsconfig.json 
+      # If you have a separate config file that's not part of src and needs to be live-reloaded:
+      # - ./config/index.js:/usr/src/app/dist/config/index.js # Example if config is JS after build
+    depends_on:
+      - db
+    # If your dev script in package.json (e.g., "npm run dev") handles TypeScript compilation and restarts on changes,
+    # you can override the default CMD from Dockerfile for development.
+    # command: npm run dev
+
+  db:
+    image: postgres:13-alpine
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password123 # Must match DB_PASSWORD for the app service
+      POSTGRES_DB: recipe_db # Creates this database on init
+    ports:
+      # Optionally expose DB port to host machine for direct access with a DB tool
+      - "5433:5432" # Mapping to 5433 on host to avoid conflicts if local Postgres runs on 5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Mount custom init scripts and all migration files
+      # Files in /docker-entrypoint-initdb.d are executed in alphabetical order.
+      - ./database/seeders/init.sql:/docker-entrypoint-initdb.d/000_init.sql
+      - ./database/migrations:/docker-entrypoint-initdb.d/100_migrations 
+      # The '100_migrations' prefix for the directory ensures its contents run after '000_init.sql'
+      # All .sql files within 'database/migrations' will be run alphabetically.
+    restart: unless-stopped
+
+volumes:
+  pgdata: # Defines a named volume for persisting PostgreSQL data

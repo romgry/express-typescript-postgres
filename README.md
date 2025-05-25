@@ -196,6 +196,61 @@ cd src/
 npm run prod;
 ```
 
+## How to Run with Docker
+
+This application can be built and run using Docker and Docker Compose, which simplifies setup and ensures a consistent environment.
+
+### Prerequisites
+
+*   [Docker](https://docs.docker.com/get-docker/) installed on your system.
+*   [Docker Compose](https://docs.docker.com/compose/install/) installed on your system.
+
+### Setup and Running
+
+1.  **Clone the repository:**
+    ```sh
+    git clone <repository_url>
+    cd <repository_name>
+    ```
+
+2.  **Environment Configuration (Important for Database):**
+    The application's database connection and other settings are configured via environment variables, as defined in `docker-compose.yml` and used by `config/index.ts`. The `docker-compose.yml` file comes with default credentials for the PostgreSQL database:
+    *   **Database Name:** `recipe_db`
+    *   **User:** `root`
+    *   **Password:** `password123` (this is also set for the `app` service's `DB_PASSWORD` environment variable)
+
+    If you need to change these, modify the `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` environment variables in the `db` service definition in `docker-compose.yml`, and ensure the `DB_USER`, `DB_PASSWORD`, `DB_NAME` variables for the `app` service are updated accordingly.
+
+    The application expects `config/index.ts` to exist. If you haven't set it up yet (e.g., by copying from `config/index.sample.ts` and modifying it to use environment variables as per the Docker setup), ensure this is done. The Docker setup assumes `config/index.ts` correctly reads these environment variables.
+
+3.  **Build and Run the Application:**
+    Navigate to the project root directory (where `docker-compose.yml` is located) and run:
+    ```sh
+    docker-compose up --build
+    ```
+    This command will:
+    *   Build the Docker image for the application as defined in the `Dockerfile`.
+    *   Pull the PostgreSQL image if not already present.
+    *   Start both the application and database services.
+    *   The first time the database service starts, it will initialize the database and run all migrations located in `database/seeders/init.sql` and `database/migrations/`.
+
+4.  **Accessing the Application:**
+    Once the services are up and running, the application should be accessible at `http://localhost:9000` (or the port you've configured).
+    The API documentation (Swagger) should be available at `http://localhost:9000/swagger`.
+
+5.  **Stopping the Application:**
+    To stop the services, press `Ctrl+C` in the terminal where `docker-compose up` is running. To stop and remove the containers, you can run:
+    ```sh
+    docker-compose down
+    ```
+
+6.  **Database Persistence:**
+    Database data is persisted in a Docker named volume (`pgdata`), so your data will remain even if you stop and restart the containers with `docker-compose down` and `docker-compose up`. To remove the volume (and all data), you can use `docker-compose down -v`.
+
+### Development with Docker
+
+For local development, the `app` service in `docker-compose.yml` mounts the `./src` directory into the container. If you have a development script that watches for file changes and recompiles/restarts (like `ts-node-dev`, which is used in the `npm run dev` script), changes you make to your source code will be reflected live. You might need to uncomment or adjust the `command` in the `app` service within `docker-compose.yml` to use your `npm run dev` script for this behavior.
+
 # How to access the API Documentation?
 
 - Try accessing the http://`<HOST>:<PORT>`/swagger
