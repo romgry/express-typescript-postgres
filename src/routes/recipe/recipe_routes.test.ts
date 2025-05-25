@@ -89,7 +89,14 @@ describe('POST /v0/recipes/upload/instagram', () => {
       .expect(200) // Based on ResponseWrapper.ok()
 
     expect(response.body.success).toBe(true)
-    expect(response.body.data).toEqual(mockSavedRecipe)
+    // Adjusting comparison to account for Date object serialization to ISO strings in JSON
+    expect(response.body.data.id).toEqual(mockSavedRecipe.id);
+    expect(response.body.data.ingredients).toEqual(mockSavedRecipe.ingredients);
+    expect(response.body.data.instructions).toEqual(mockSavedRecipe.instructions);
+    expect(response.body.data.original_video_url).toEqual(mockSavedRecipe.original_video_url);
+    expect(response.body.data.created_at).toEqual(mockSavedRecipe.created_at.toISOString());
+    expect(response.body.data.updated_at).toEqual(mockSavedRecipe.updated_at.toISOString());
+    expect(response.body.data.deleted_at).toBeNull();
 
     // Verify that the mocked service methods were called correctly
     expect(RecipeService.prototype.parseInstagramRecipe).toHaveBeenCalledTimes(1)
